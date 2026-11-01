@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { QueueModal } from '@/components/queue-modal';
 import { TrackMenu } from '@/components/track-menu';
 import { gradient, MusicColors, MusicFonts } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
@@ -24,6 +25,7 @@ export default function PlayerScreen() {
   const { track, isPlaying, position, duration, loop, toggle, next, previous, seek, toggleLoop, notify } = usePlayer();
   const paddingTop = Math.max(useSafeAreaInsets().top, 42) + 22;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [queueOpen, setQueueOpen] = useState(false);
   const [barWidth, setBarWidth] = useState(0);
   const [barLeft, setBarLeft] = useState(0);
 
@@ -195,6 +197,14 @@ export default function PlayerScreen() {
             style={[styles.loop, loop && styles.loopOn]}>
             <Image source={require('@/assets/images/music/loop.svg')} contentFit="fill" style={styles.icon} />
           </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Hàng đợi phát"
+            hitSlop={12}
+            onPress={() => setQueueOpen(true)}
+            style={styles.queueBtn}>
+            <Image source={require('@/assets/images/music/queue.svg')} contentFit="fill" style={styles.icon} />
+          </Pressable>
         </View>
       </ScrollView>
 
@@ -207,6 +217,8 @@ export default function PlayerScreen() {
           favFetch.reload();
         }}
       />
+
+      <QueueModal visible={queueOpen} onClose={() => setQueueOpen(false)} />
     </View>
   );
 }
@@ -383,5 +395,9 @@ const styles = StyleSheet.create({
   },
   loopOn: {
     backgroundColor: MusicColors.brown,
+  },
+  queueBtn: {
+    padding: 4,
+    borderRadius: 8,
   },
 });
