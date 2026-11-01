@@ -17,7 +17,10 @@ router.get('/search', async (req, res) => {
 
   const pattern = new RegExp(escapeRegex(q.trim()), 'i');
   const [locals, audius] = await Promise.all([
-    Track.find({ isHidden: false, $or: [{ title: pattern }, { artistName: pattern }] })
+    Track.find({
+      isHidden: false,
+      $or: [{ title: pattern }, { artistName: pattern }, { genre: pattern }],
+    })
       .sort({ createdAt: -1 })
       .limit(20),
     // Local tracks must stay searchable when Audius is down

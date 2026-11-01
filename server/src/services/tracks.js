@@ -19,6 +19,7 @@ export const localTrackDto = (req, track) => ({
   id: track.id,
   title: track.title,
   artist: track.artistName,
+  genre: track.genre,
   artwork: coverUrl(req, track.coverFile),
   duration: track.duration,
 });
