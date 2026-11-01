@@ -10,7 +10,7 @@ import { TrackMenu } from '@/components/track-menu';
 import { gradient, MusicColors, MusicFonts } from '@/constants/theme';
 import { useFetch } from '@/hooks/use-fetch';
 import { usePlayer, useTabBarSpace } from '@/hooks/use-player';
-import { api, type PlaylistSummary, type Track } from '@/lib/api';
+import { api, trackPath, type PlaylistSummary, type Track } from '@/lib/api';
 import { goBack } from '@/lib/go-back';
 
 export default function PlaylistScreen() {
@@ -23,6 +23,16 @@ export default function PlaylistScreen() {
   const [confirming, setConfirming] = useState(false);
 
   const songs = playlist.data?.tracks ?? [];
+
+  const removeTrack = async (track: Track) => {
+    try {
+      await api(`/api/playlists/${id}/tracks/${trackPath(track)}`, { method: 'DELETE' });
+      notify(`Đã xoá "${track.title}" khỏi playlist`);
+      playlist.reload();
+    } catch (err) {
+      notify((err as Error).message);
+    }
+  };
 
   const remove = async () => {
     try {
@@ -74,6 +84,7 @@ export default function PlaylistScreen() {
               key={`${song.source}/${song.id}`}
               track={song}
               onPress={() => open(song, songs)}
+              onRemove={() => removeTrack(song)}
               onMore={() => setMenuTrack(song)}
             />
           ))}

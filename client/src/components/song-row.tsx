@@ -8,9 +8,10 @@ type Props = {
   track: Track;
   onPress: () => void;
   onMore: () => void;
+  onRemove?: () => void;
 };
 
-export function SongRow({ track, onPress, onMore }: Props) {
+export function SongRow({ track, onPress, onMore, onRemove }: Props) {
   const unavailable = track.isAvailable === false;
 
   return (
@@ -32,6 +33,16 @@ export function SongRow({ track, onPress, onMore }: Props) {
           </Text>
         </View>
       </Pressable>
+      {onRemove && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Xóa ${track.title} khỏi playlist`}
+          hitSlop={12}
+          onPress={onRemove}
+          style={styles.removeHit}>
+          <Text style={styles.removeText}>✕</Text>
+        </Pressable>
+      )}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Tùy chọn cho ${track.title}`}
@@ -96,5 +107,16 @@ const styles = StyleSheet.create({
   more: {
     width: 19,
     height: 3,
+  },
+  removeHit: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    marginRight: 8,
+  },
+  removeText: {
+    fontFamily: MusicFonts.bold,
+    fontSize: 16,
+    color: '#ff7b72',
   },
 });
