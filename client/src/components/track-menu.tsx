@@ -22,7 +22,7 @@ type Props = {
 
 export function TrackMenu({ track, onClose, isFavorite, playlistId, onChanged }: Props) {
   const { user } = useAuth();
-  const { notify } = usePlayer();
+  const { notify, addToQueue } = usePlayer();
   const [picking, setPicking] = useState(false);
   const playlists = useFetch<Page<PlaylistSummary>>(track && picking ? '/api/playlists?limit=100' : null);
 
@@ -63,6 +63,25 @@ export function TrackMenu({ track, onClose, isFavorite, playlistId, onChanged }:
               router.push('/account');
             }}
           />
+        )}
+
+        {track.isAvailable !== false && !picking && (
+          <>
+            <Action
+              label="Phát tiếp theo"
+              onPress={() => {
+                addToQueue(track, true);
+                close();
+              }}
+            />
+            <Action
+              label="Thêm vào hàng đợi"
+              onPress={() => {
+                addToQueue(track, false);
+                close();
+              }}
+            />
+          </>
         )}
 
         {user && picking && (
