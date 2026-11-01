@@ -18,6 +18,12 @@ export type User = {
   role: 'LISTENER' | 'ARTIST' | 'ADMIN';
 };
 
+export type ArtistTrack = Track & {
+  genre?: string;
+  isHidden: boolean;
+  createdAt: string;
+};
+
 export type Page<T> = { items: T[]; total: number; page: number; limit: number };
 
 export type PlaylistSummary = { id: string; name: string; trackCount: number };
@@ -26,7 +32,7 @@ export type PlaylistSummary = { id: string; name: string; trackCount: number };
 const devHost = Constants.expoConfig?.hostUri?.split(':')[0] ?? 'localhost';
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? `http://${devHost}:3000`;
 
-const TIMEOUT_MS = 15_000;
+const DEFAULT_TIMEOUT_MS = 15_000;
 
 let token: string | null = null;
 let onSessionExpired: (() => void) | null = null;
@@ -43,9 +49,14 @@ export const trackPath = (track: Track) => `${track.source.toLowerCase()}/${trac
 
 export const streamUrl = (track: Track) => `${API_URL}/api/tracks/${trackPath(track)}/stream`;
 
-export async function api<T = void>(path: string, options: { method?: string; body?: unknown } = {}): Promise<T> {
+export async function api<T = void>(
+  path: string,
+  options: { method?: string; body?: unknown; timeoutMs?: number } = {},
+): Promise<T> {
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const timeoutMs = options.timeoutMs ?? (isFormData ? 120_000 : DEFAULT_TIMEOUT_MS);
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   let res: Response;
   try {
@@ -53,10 +64,14 @@ export async function api<T = void>(path: string, options: { method?: string; bo
       method: options.method ?? 'GET',
       signal: controller.signal,
       headers: {
-        ...(options.body !== undefined && { 'Content-Type': 'application/json' }),
+        ...(!isFormData && options.body !== undefined && { 'Content-Type': 'application/json' }),
         ...(token && { Authorization: `Bearer ${token}` }),
       },
-      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      body: isFormData
+        ? (options.body as FormData)
+        : options.body !== undefined
+        ? JSON.stringify(options.body)
+        : undefined,
     });
   } catch {
     throw new Error('Không kết nối được máy chủ');
