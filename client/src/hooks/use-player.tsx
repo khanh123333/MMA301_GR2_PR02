@@ -17,8 +17,14 @@ type Player = {
   position: number;
   duration: number;
   loop: boolean;
+  queue: Track[];
+  index: number;
   /** Starts `track` with `queue` as the up-next list and opens the player. */
   open: (track: Track, queue?: Track[]) => void;
+  playIndex: (index: number) => void;
+  addToQueue: (track: Track, playNext?: boolean) => void;
+  removeFromQueue: (index: number) => void;
+  clearUpcomingQueue: () => void;
   toggle: () => void;
   next: () => void;
   previous: () => void;
@@ -51,6 +57,56 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const next = () => {
     if (queue.length > 1) setIndex((index + 1) % queue.length);
     else player.seekTo(0);
+  };
+
+  const playIndex = (targetIndex: number) => {
+    if (targetIndex >= 0 && targetIndex < queue.length) {
+      setIndex(targetIndex);
+    }
+  };
+
+  const addToQueue = (newTrack: Track, playNext = false) => {
+    if (newTrack.isAvailable === false) return;
+    if (queue.length === 0) {
+      setQueue([newTrack]);
+      setIndex(0);
+      notify(`Đang phát: ${newTrack.title}`);
+      return;
+    }
+    if (playNext) {
+      const nextQueue = [...queue];
+      nextQueue.splice(index + 1, 0, newTrack);
+      setQueue(nextQueue);
+      notify(`Sẽ phát tiếp theo: ${newTrack.title}`);
+    } else {
+      setQueue((prev) => [...prev, newTrack]);
+      notify(`Đã thêm vào hàng đợi: ${newTrack.title}`);
+    }
+  };
+
+  const removeFromQueue = (removeIndex: number) => {
+    if (removeIndex < 0 || removeIndex >= queue.length) return;
+    if (removeIndex === index) {
+      if (queue.length > 1) {
+        const nextQueue = queue.filter((_, i) => i !== removeIndex);
+        setQueue(nextQueue);
+        if (removeIndex >= nextQueue.length) setIndex(0);
+      } else {
+        player.pause();
+        player.clearLockScreenControls?.();
+        setQueue([]);
+        setIndex(0);
+      }
+    } else {
+      setQueue((prev) => prev.filter((_, i) => i !== removeIndex));
+      if (removeIndex < index) setIndex((prev) => prev - 1);
+    }
+  };
+
+  const clearUpcomingQueue = () => {
+    if (queue.length <= 1) return;
+    setQueue((prev) => prev.slice(0, index + 1));
+    notify('Đã dọn danh sách chờ tiếp theo');
   };
 
   useEffect(() => {
@@ -109,12 +165,18 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         position: status.currentTime,
         duration,
         loop,
+        queue,
+        index,
         open: (song, list = [song]) => {
           const playable = list.filter((item) => item.isAvailable !== false);
           setQueue(playable);
           setIndex(Math.max(playable.findIndex((item) => item.source === song.source && item.id === song.id), 0));
           router.push('/player');
         },
+        playIndex,
+        addToQueue,
+        removeFromQueue,
+        clearUpcomingQueue,
         toggle: () => (status.playing ? player.pause() : player.play()),
         next,
         previous: () => {
