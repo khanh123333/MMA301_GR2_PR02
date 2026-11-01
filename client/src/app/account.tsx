@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,7 +38,26 @@ export default function AccountScreen() {
               {user.name}
             </Text>
             <Text style={styles.detail}>{user.email}</Text>
-            <Text style={styles.detail}>{ROLE_LABELS[user.role]}</Text>
+            <View style={styles.roleBadgeContainer}>
+              <Text style={styles.roleBadgeText}>{ROLE_LABELS[user.role]}</Text>
+            </View>
+
+            {user.role === 'ARTIST' && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push('/artist')}
+                style={styles.featureCardBtn}>
+                <View style={styles.featureIconBox}>
+                  <Text style={{ fontSize: 22 }}>🎙️</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.featureCardTitle}>Studio Nghệ sĩ</Text>
+                  <Text style={styles.featureCardSub}>Quản lý bài hát & tải bài mới lên</Text>
+                </View>
+                <Text style={styles.featureCardArrow}>›</Text>
+              </Pressable>
+            )}
+
             <Pressable
               accessibilityRole="button"
               onPress={async () => {
@@ -197,6 +217,57 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     color: MusicColors.cream,
+  },
+  roleBadgeContainer: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(221,189,134,0.25)',
+    borderWidth: 1,
+    borderColor: MusicColors.gold,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 14,
+    marginBottom: 20,
+  },
+  roleBadgeText: {
+    fontFamily: MusicFonts.bold,
+    fontSize: 13,
+    color: MusicColors.gold,
+  },
+  featureCardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(221,189,134,0.3)',
+  },
+  featureIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(221,189,134,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  featureCardTitle: {
+    fontFamily: MusicFonts.bold,
+    fontSize: 16,
+    color: MusicColors.cream,
+  },
+  featureCardSub: {
+    fontFamily: MusicFonts.medium,
+    fontSize: 12,
+    color: MusicColors.sand,
+    opacity: 0.8,
+    marginTop: 2,
+  },
+  featureCardArrow: {
+    fontSize: 24,
+    color: MusicColors.gold,
+    marginLeft: 8,
   },
   input: {
     height: 48,
