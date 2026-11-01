@@ -22,6 +22,12 @@ router.get('/favorites', async (req, res) => {
   res.json({ items: await presentSnapshots(req, rows.map((row) => row.track)), total, page, limit });
 });
 
+router.get('/favorites/:source/:id', async (req, res) => {
+  const ref = parseTrackRef(req.params.source, req.params.id);
+  const exists = await Favorite.exists(trackFilter(req.user, ref));
+  res.json({ isFavorite: Boolean(exists) });
+});
+
 router.put('/favorites/:source/:id', async (req, res) => {
   const ref = parseTrackRef(req.params.source, req.params.id);
   const track = await resolveSnapshot(ref);

@@ -18,8 +18,10 @@ test('library routes require login', async () => {
 test('favorites add idempotently, list and remove', async () => {
   const { token } = await createUser();
   stubTrack();
+  assert.deepEqual(await (await api('/api/me/favorites/audius/abc', { token })).json(), { isFavorite: false });
   assert.equal((await api('/api/me/favorites/audius/abc', { method: 'PUT', token })).status, 204);
   assert.equal((await api('/api/me/favorites/AUDIUS/abc', { method: 'PUT', token })).status, 204);
+  assert.deepEqual(await (await api('/api/me/favorites/audius/abc', { token })).json(), { isFavorite: true });
 
   const list = await (await api('/api/me/favorites', { token })).json();
   assert.equal(list.total, 1);
@@ -28,6 +30,7 @@ test('favorites add idempotently, list and remove', async () => {
   });
 
   assert.equal((await api('/api/me/favorites/audius/abc', { method: 'DELETE', token })).status, 204);
+  assert.deepEqual(await (await api('/api/me/favorites/audius/abc', { token })).json(), { isFavorite: false });
   assert.equal((await (await api('/api/me/favorites', { token })).json()).total, 0);
 });
 

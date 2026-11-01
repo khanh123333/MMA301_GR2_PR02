@@ -295,7 +295,7 @@ Tất cả route dưới đây đã có trong code. `:source` là `audius` hoặ
 | GET | `/api/tracks/latest` | Công khai | Bài mới của nghệ sĩ trong hệ thống |
 | GET | `/api/tracks/:source/:id/stream` | Công khai | Stream theo nguồn |
 | GET | `/api/me/favorites` | Auth | Danh sách yêu thích |
-| PUT, DELETE | `/api/me/favorites/:source/:id` | Auth | Thích, bỏ thích |
+| GET, PUT, DELETE | `/api/me/favorites/:source/:id` | Auth | Kiểm tra trạng thái thích, thích, bỏ thích |
 | GET, POST | `/api/playlists` | Auth | Danh sách, tạo playlist |
 | GET, PATCH, DELETE | `/api/playlists/:id` | Chủ playlist | Xem, đổi tên, xoá |
 | POST | `/api/playlists/:id/tracks` | Chủ playlist | Thêm bài |
