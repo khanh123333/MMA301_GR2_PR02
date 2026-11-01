@@ -1,0 +1,21 @@
+{
+  "name": "music-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=.env src/index.js",
+    "start": "node --env-file-if-exists=.env src/index.js",
+    "test": "node --test \"test/*.test.js\"",
+    "db:seed": "node --env-file-if-exists=.env scripts/seed.js",
+    "db:export": "node --env-file-if-exists=.env scripts/db-export.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.11.4",
+    "multer": "^2.5.0",
+    "music-metadata": "^12.3.3"
+  }
+}

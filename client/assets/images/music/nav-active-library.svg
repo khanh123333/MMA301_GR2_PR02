@@ -1,0 +1,12 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Ellipse 3">
+<path d="M55 28C55 42.9117 42.9117 55 28 55C13.0883 55 1 42.9117 1 28C1 13.0883 13.0883 1 28 1C42.9117 1 55 13.0883 55 28Z" fill="#6B3830"/>
+<path d="M55.5 28C55.5 43.1878 43.1878 55.5 28 55.5C12.8122 55.5 0.5 43.1878 0.5 28C0.5 12.8122 12.8122 0.5 28 0.5C43.1878 0.5 55.5 12.8122 55.5 28Z" stroke="url(#paint0_radial_0_89)"/>
+</g>
+<defs>
+<radialGradient id="paint0_radial_0_89" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(22.1091 22.1091) rotate(88.5083) scale(94.2865)">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+</defs>
+</svg>

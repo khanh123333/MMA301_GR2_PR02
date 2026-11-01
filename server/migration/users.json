@@ -1,0 +1,54 @@
+[
+  {
+    "_id": {
+      "$oid": "6ae6ad8351c39f0294c597b2"
+    },
+    "name": "Admin",
+    "email": "admin@example.com",
+    "passwordHash": "$2b$10$BXlUDRAnX4LVDnxFZWtpNuSHrCJ.MtKn8e9fpH2RkNrw4dBeYRx2G",
+    "tokenVersion": {
+      "$numberInt": "0"
+    },
+    "role": "ADMIN",
+    "isActive": true,
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1793502595555"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1793502595555"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ae6b640c4ee9becc7e1f151"
+    },
+    "name": "toikobi",
+    "email": "ledat112228@gmail.com",
+    "passwordHash": "$2b$10$U.inFYrbxfkpA79M9wv0WeewVgJGCuLcEPr7gRX6cxVFVkwMNT5A2",
+    "tokenVersion": {
+      "$numberInt": "0"
+    },
+    "role": "LISTENER",
+    "isActive": true,
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1793504832721"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1793504832721"
+      }
+    },
+    "__v": {
+      "$numberInt": "0"
+    }
+  }
+]
