@@ -1,12 +1,15 @@
 import { Image } from 'expo-image';
-import { Redirect } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TrackMenu } from '@/components/track-menu';
 import { gradient, MusicColors, MusicFonts } from '@/constants/theme';
+import { useAuth } from '@/hooks/use-auth';
+import { useFetch } from '@/hooks/use-fetch';
 import { usePlayer } from '@/hooks/use-player';
+import { api } from '@/lib/api';
 import { goBack } from '@/lib/go-back';
 
 const THUMB_SIZE = 16;
@@ -17,14 +20,51 @@ const clock = (seconds: number) => {
 };
 
 export default function PlayerScreen() {
-  const { track, isPlaying, position, duration, loop, toggle, next, previous, seek, toggleLoop } = usePlayer();
+  const { user } = useAuth();
+  const { track, isPlaying, position, duration, loop, toggle, next, previous, seek, toggleLoop, notify } = usePlayer();
   const paddingTop = Math.max(useSafeAreaInsets().top, 42) + 22;
   const [menuOpen, setMenuOpen] = useState(false);
   const [barWidth, setBarWidth] = useState(0);
   const [barLeft, setBarLeft] = useState(0);
 
+  const trackKey = track ? `${track.source}/${track.id}` : '';
+  const favPath = user && track ? `/api/me/favorites/${track.source.toLowerCase()}/${track.id}` : null;
+  const favFetch = useFetch<{ isFavorite: boolean }>(favPath);
+  const [override, setOverride] = useState<{ key: string; value: boolean } | null>(null);
+  const [favBusy, setFavBusy] = useState(false);
+
   // A reload or deep link lands here with no track selected.
   if (!track) return <Redirect href="/" />;
+
+  const isFavorite = override?.key === trackKey ? override.value : Boolean(favFetch.data?.isFavorite);
+
+  const toggleFavorite = async () => {
+    if (!user) {
+      notify('Đăng nhập để lưu bài hát');
+      router.push('/account');
+      return;
+    }
+    if (favBusy) return;
+    setFavBusy(true);
+    const nextState = !isFavorite;
+    setOverride({ key: trackKey, value: nextState });
+    const path = `/api/me/favorites/${track.source.toLowerCase()}/${track.id}`;
+    try {
+      if (nextState) {
+        await api(path, { method: 'PUT' });
+        notify('Đã thêm vào yêu thích');
+      } else {
+        await api(path, { method: 'DELETE' });
+        notify('Đã bỏ thích');
+      }
+      favFetch.reload();
+    } catch (err) {
+      setOverride({ key: trackKey, value: !nextState });
+      notify((err as Error).message);
+    } finally {
+      setFavBusy(false);
+    }
+  };
 
   const progress = duration > 0 ? Math.min(position / duration, 1) : 0;
 
@@ -61,12 +101,32 @@ export default function PlayerScreen() {
 
         <Image source={track.artwork} style={styles.art} />
 
-        <Text numberOfLines={1} style={styles.title}>
-          {track.title}
-        </Text>
-        <Text numberOfLines={1} style={styles.artist}>
-          {track.artist}
-        </Text>
+        <View style={styles.titleRow}>
+          <View style={styles.titleInfo}>
+            <Text numberOfLines={1} style={styles.title}>
+              {track.title}
+            </Text>
+            <Text numberOfLines={1} style={styles.artist}>
+              {track.artist}
+            </Text>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={isFavorite ? 'Bỏ thích bài hát' : 'Thích bài hát'}
+            hitSlop={12}
+            onPress={toggleFavorite}
+            style={styles.heartButton}>
+            <Image
+              source={
+                isFavorite
+                  ? require('@/assets/images/music/heart-filled.svg')
+                  : require('@/assets/images/music/heart-outline.svg')
+              }
+              contentFit="contain"
+              style={styles.heartIcon}
+            />
+          </Pressable>
+        </View>
 
         <Pressable
           accessibilityRole="adjustable"
@@ -138,7 +198,15 @@ export default function PlayerScreen() {
         </View>
       </ScrollView>
 
-      <TrackMenu track={menuOpen ? track : null} onClose={() => setMenuOpen(false)} />
+      <TrackMenu
+        track={menuOpen ? track : null}
+        isFavorite={isFavorite}
+        onClose={() => setMenuOpen(false)}
+        onChanged={() => {
+          setOverride({ key: trackKey, value: !isFavorite });
+          favFetch.reload();
+        }}
+      />
     </View>
   );
 }
@@ -197,23 +265,46 @@ const styles = StyleSheet.create({
     borderRadius: 42,
     backgroundColor: MusicColors.brown,
   },
+  titleRow: {
+    alignSelf: 'stretch',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 36,
+  },
+  titleInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
   title: {
-    marginTop: 40,
     fontFamily: MusicFonts.medium,
-    fontSize: 32,
-    lineHeight: 48,
+    fontSize: 28,
+    lineHeight: 38,
     color: '#ffffff',
   },
   artist: {
+    marginTop: 2,
     fontFamily: MusicFonts.medium,
     fontSize: 16,
     lineHeight: 24,
     color: MusicColors.cream,
   },
+  heartButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heartIcon: {
+    width: 24,
+    height: 24,
+  },
   bar: {
     alignSelf: 'stretch',
     height: 24,
-    marginTop: 42,
+    marginTop: 36,
   },
   line: {
     position: 'absolute',
