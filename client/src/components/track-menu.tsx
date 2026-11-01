@@ -123,11 +123,12 @@ export function TrackMenu({ track, onClose, isFavorite, playlistId, onChanged }:
             {track.isAvailable !== false && <Action label="Thêm vào playlist" onPress={() => setPicking(true)} />}
             {playlistId && (
               <Action
-                label="Bỏ khỏi playlist"
+                label="Xoá khỏi playlist"
+                danger
                 onPress={() =>
                   run(
                     api(`/api/playlists/${playlistId}/tracks/${trackPath(track)}`, { method: 'DELETE' }),
-                    'Đã bỏ khỏi playlist',
+                    'Đã xoá khỏi playlist',
                     true,
                   )
                 }
@@ -140,10 +141,10 @@ export function TrackMenu({ track, onClose, isFavorite, playlistId, onChanged }:
   );
 }
 
-function Action({ label, onPress }: { label: string; onPress: () => void }) {
+function Action({ label, danger, onPress }: { label: string; danger?: boolean; onPress: () => void }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.action}>
-      <Text numberOfLines={1} style={styles.actionLabel}>
+      <Text numberOfLines={1} style={[styles.actionLabel, danger && styles.actionDanger]}>
         {label}
       </Text>
     </Pressable>
@@ -185,5 +186,8 @@ const styles = StyleSheet.create({
     fontFamily: MusicFonts.semiBold,
     fontSize: 16,
     color: MusicColors.cream,
+  },
+  actionDanger: {
+    color: '#ff7b72',
   },
 });

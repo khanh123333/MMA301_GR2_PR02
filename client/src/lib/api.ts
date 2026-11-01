@@ -7,6 +7,7 @@ export type Track = {
   artist: string;
   artwork: string | null;
   duration: number;
+  genre?: string;
   /** Library responses only; false for hidden or deleted LOCAL tracks. */
   isAvailable?: boolean;
 };
