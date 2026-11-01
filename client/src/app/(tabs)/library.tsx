@@ -12,32 +12,47 @@ import { useFetch } from '@/hooks/use-fetch';
 import { usePlayer, useTabBarSpace } from '@/hooks/use-player';
 import { api, type Page, type PlaylistSummary, type Track } from '@/lib/api';
 
-const TABS = ['Yêu thích', 'Album', 'Playlist'] as const;
+const TABS = ['Yêu thích', 'Lịch sử', 'Playlist'] as const;
 // shortcut: first 100 only, add paging once a list can realistically outgrow it
 const FAVORITES = '/api/me/favorites?limit=100';
 const PLAYLISTS = '/api/playlists?limit=100';
+const HISTORY = '/api/me/history';
 
 export default function LibraryScreen() {
   const { user, ready } = useAuth();
-  const { open } = usePlayer();
+  const { open, notify } = usePlayer();
   const paddingBottom = useTabBarSpace();
   const [tab, setTab] = useState<(typeof TABS)[number]>('Yêu thích');
   const [menuTrack, setMenuTrack] = useState<Track | null>(null);
 
   const favorites = useFetch<Page<Track>>(user && tab === 'Yêu thích' ? FAVORITES : null);
   const playlists = useFetch<Page<PlaylistSummary>>(user && tab === 'Playlist' ? PLAYLISTS : null);
+  const history = useFetch<(Track & { playedAt: string })[]>(user && tab === 'Lịch sử' ? HISTORY : null);
   const reloadFavorites = favorites.reload;
   const reloadPlaylists = playlists.reload;
+  const reloadHistory = history.reload;
 
   // A song may have been liked or added to a playlist on another screen
   useFocusEffect(
     useCallback(() => {
       reloadFavorites();
       reloadPlaylists();
-    }, [reloadFavorites, reloadPlaylists]),
+      reloadHistory();
+    }, [reloadFavorites, reloadPlaylists, reloadHistory]),
   );
 
   const songs = favorites.data?.items ?? [];
+  const historySongs = history.data ?? [];
+
+  const clearHistory = async () => {
+    try {
+      await api('/api/me/history', { method: 'DELETE' });
+      notify('Đã xoá toàn bộ lịch sử nghe');
+      reloadHistory();
+    } catch (err) {
+      notify((err as Error).message);
+    }
+  };
 
   return (
     <ScrollView
@@ -65,9 +80,7 @@ export default function LibraryScreen() {
 
       <Text style={styles.heading}>{tab}</Text>
 
-      {tab === 'Album' ? (
-        <Text style={styles.empty}>Chưa có album</Text>
-      ) : !ready ? null : !user ? (
+      {!ready ? null : !user ? (
         <View style={styles.guest}>
           <Text style={styles.empty}>Đăng nhập để xem thư viện của bạn</Text>
           <Pressable accessibilityRole="button" onPress={() => router.push('/account')} style={styles.button}>
@@ -87,6 +100,32 @@ export default function LibraryScreen() {
             />
           ))}
         </>
+      ) : tab === 'Lịch sử' ? (
+        <>
+          <LoadState loading={history.loading && !history.data} error={history.error} onRetry={history.reload} />
+          {history.data && historySongs.length === 0 && (
+            <Text style={styles.empty}>Chưa có bài hát trong lịch sử nghe</Text>
+          )}
+          {historySongs.length > 0 && (
+            <View style={styles.historyActionRow}>
+              <Text style={styles.historyCount}>{historySongs.length} bài hát đã nghe</Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={clearHistory}
+                style={styles.clearHistoryBtn}>
+                <Text style={styles.clearHistoryBtnText}>Xoá lịch sử</Text>
+              </Pressable>
+            </View>
+          )}
+          {historySongs.map((song) => (
+            <SongRow
+              key={`history-${song.source}/${song.id}`}
+              track={song}
+              onPress={() => open(song, historySongs)}
+              onMore={() => setMenuTrack(song)}
+            />
+          ))}
+        </>
       ) : (
         <Playlists
           items={playlists.data?.items}
@@ -98,9 +137,12 @@ export default function LibraryScreen() {
 
       <TrackMenu
         track={menuTrack}
-        isFavorite
+        isFavorite={tab === 'Yêu thích'}
         onClose={() => setMenuTrack(null)}
-        onChanged={favorites.reload}
+        onChanged={() => {
+          reloadFavorites();
+          reloadHistory();
+        }}
       />
     </ScrollView>
   );
@@ -264,6 +306,32 @@ const styles = StyleSheet.create({
     fontFamily: MusicFonts.semiBold,
     fontSize: 15,
     lineHeight: 20,
+    color: MusicColors.cream,
+  },
+  historyActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 21,
+    marginBottom: 16,
+  },
+  historyCount: {
+    fontFamily: MusicFonts.medium,
+    fontSize: 13,
+    color: MusicColors.sand,
+    opacity: 0.8,
+  },
+  clearHistoryBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 208, 0.25)',
+  },
+  clearHistoryBtnText: {
+    fontFamily: MusicFonts.medium,
+    fontSize: 12,
     color: MusicColors.cream,
   },
 });
