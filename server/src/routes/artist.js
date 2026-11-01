@@ -53,6 +53,10 @@ router.get('/', async (req, res) => {
   res.json({ items: tracks.map((track) => artistTrackDto(req, track)), total, page, limit });
 });
 
+router.get('/:id', loadOwned, (req, res) => {
+  res.json(artistTrackDto(req, req.track));
+});
+
 router.post('/', uploadLimit, checkQuota, uploadTrackFiles, async (req, res) => {
   const audio = req.files?.audio?.[0];
   const cover = req.files?.cover?.[0];
