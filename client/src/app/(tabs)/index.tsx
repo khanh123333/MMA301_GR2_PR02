@@ -1,8 +1,10 @@
 import { Image } from 'expo-image';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { LoadState } from '@/components/load-state';
 import { ScreenHeader } from '@/components/screen-header';
+import { TrackMenu } from '@/components/track-menu';
 import { gradient, MusicColors, MusicFonts } from '@/constants/theme';
 import { useFetch } from '@/hooks/use-fetch';
 import { usePlayer, useTabBarSpace } from '@/hooks/use-player';
@@ -19,6 +21,7 @@ const keyOf = (track: Track) => `${track.source}/${track.id}`;
 export default function DiscoverScreen() {
   const { open } = usePlayer();
   const paddingBottom = useTabBarSpace();
+  const [menuTrack, setMenuTrack] = useState<Track | null>(null);
   const trending = useFetch<Track[]>('/api/tracks/trending');
   const latest = useFetch<Track[]>('/api/tracks/latest');
 
@@ -67,6 +70,21 @@ export default function DiscoverScreen() {
             contentFit="fill"
             style={styles.playTriangle}
           />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Tùy chọn cho ${track.title}`}
+            hitSlop={8}
+            onPress={(e) => {
+              (e as unknown as { stopPropagation?: () => void }).stopPropagation?.();
+              setMenuTrack(track);
+            }}
+            style={styles.cardMore}>
+            <Image
+              source={require('@/assets/images/music/more.svg')}
+              contentFit="fill"
+              style={styles.cardMoreIcon}
+            />
+          </Pressable>
         </Pressable>
       ))}
 
@@ -90,6 +108,8 @@ export default function DiscoverScreen() {
         <HitRow key={row} heading="Thịnh hành hôm nay" songs={songs} onPlay={open} />
       ))}
       {!!latest.data?.length && <HitRow heading="Mới từ nghệ sĩ" songs={latest.data} onPlay={open} />}
+
+      <TrackMenu track={menuTrack} onClose={() => setMenuTrack(null)} />
     </ScrollView>
   );
 }
@@ -192,6 +212,23 @@ const styles = StyleSheet.create({
     top: 80.6,
     width: 26.76,
     height: 26.77,
+  },
+  cardMore: {
+    position: 'absolute',
+    left: 74,
+    top: 74,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(0, 0, 0, 0.28)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 208, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cardMoreIcon: {
+    width: 16,
+    height: 3,
   },
   artistHeading: {
     marginTop: -9,
